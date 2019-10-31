@@ -183,7 +183,6 @@ spec:
 
 
 ```
---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -197,9 +196,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx0
-    # nfs real ip
     server: 192.168.10.10
 ...
 ---
@@ -216,9 +213,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx1
-    # nfs real ip
     server: 192.168.10.10
 ...
 ---
@@ -235,9 +230,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx2
-    # nfs real ip
     server: 192.168.10.10
 ...
 ---
@@ -254,9 +247,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx3
-    # nfs real ip
     server: 192.168.10.10
 ...
 ---
@@ -273,9 +264,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx4
-    # nfs real ip
     server: 192.168.10.10
 ...
 ---
@@ -292,9 +281,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx5
-    # nfs real ip
     server: 192.168.10.10
 ...                                                  
 ```
