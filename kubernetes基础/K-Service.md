@@ -6,7 +6,7 @@
 
 service 是一组具有相同 label pod 集合的抽象，集群内外的各个服务可以通过 service 进行互相通信，当创建一个 service 对象时也会对应创建一个 endpoint 对象，endpoint 是用来做容器发现的，service 只是将多个 pod 进行关联，实际的路由转发都是由 kubernetes  中的 kube-proxy 组件来实现，因此，service 必须 kube-proxy 使用，kube-proxy 组件可以运行在 kubernetes 集群中的每一个节点上也可以只运行在单独的几个节点上，其会根据 service 和 endpoints 的变动来改变节点上 iptables 或者 ipvs 中保存的路由规则。
 
-## 2  **service 的工作原理** 
+## 2  service 的工作原理
 
 ![](image/service/s-1.jpg)
 
@@ -136,5 +136,137 @@ Ingress 的结构如下图所示：
 
 ##  6 Service的使用
 
+### 1  定义Service
 
- 
+一个Service在kubernetes中是一个REST对象。像所有REST对象一样，Service的定义可以基于POST方式，请求APIServer创建新的实例。
+
+现在有一组Pod，他们暴露了80端口，同时具有nginx=nginx标签，
+
+```
+kubectl get pods --show-labels 
+NAME                                READY   STATUS    RESTARTS   AGE     LABELS
+nginx-deployment-7c46f467b6-hfd5z   1/1     Running   1          4d19h   nginx=nginx,pod-template-hash=7c46f467b6
+nginx-deployment-7c46f467b6-tgh9n   1/1     Running   1          4d19h   nginx=nginx,pod-template-hash=7c46f467b6
+nginx-deployment-7c46f467b6-w44r5   1/1     Running   1          4d19h   nginx=nginx,pod-template-hash=7c46f467b6
+```
+
+可以定义Service如下
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    nginx: nginx
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+```
+
+说明：
+
+- selector：选择Pod的标签
+- port：80 Service的端口
+- targtePort：80 重定向到Pod的80端口
+
+应用yaml文件
+
+```
+kubectl apply -f service-nginx.yaml
+```
+
+输出信息
+
+```
+service/nginx-service created
+```
+
+查看Service
+
+```
+kubectl get service
+```
+
+输出信息
+
+```
+NAME            TYPE        CLUSTER-IP    EXTERNAL-IP   PORT(S)   AGE
+kubernetes      ClusterIP   10.250.0.1    <none>        443/TCP   4d19h
+nginx-service   ClusterIP   10.250.0.81   <none>        80/TCP    5s
+```
+
+访问nginx-service
+
+如果配置了将客户端的DNS指向coredns 则可以直接访问service的名字
+
+如果没有配置 可以访问Cluster IP
+
+访问验证 自动轮询
+
+```
+[root@master ~]# curl 10.250.0.81
+222
+[root@master ~]# curl 10.250.0.81
+111
+[root@master ~]# curl 10.250.0.81
+33333
+```
+
+### 2 定义没有Selector的Service
+
+Service抽象了该如何访问Kubernetes Pod,但也能抽象其他类型的backend，例如：
+
+- 希望在生产环境中访问外部的数据库集群。
+- 希望在Service指向另一个NameSpace中或其他集群中的服务。
+- 正在将工作负载转移到Kubernetes集群，和运行Kubernetes集群之外的backend。
+
+在任何这些场景中，都能定义没有Selector的Service：
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: no-selector-service
+spec:
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80
+```
+
+由于这个Service没有Selector，就不会创建相关的Endpoints对象，可以手动将Service映射到指定的Endpoints：
+
+```
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: no-selector-service
+subsets:
+  - addresses:
+    - ip: 192.168.10.2
+    ports:
+    - port: 80
+```
+
+注意：
+
+- Endpoints的名字要和上面创建的Service的名字相同
+- Endpoint IP地址不能是loopback(127.0.0.1/8),link-local(169.254.0.0/16)或者link-local多播地址(224.0.0.0/24)
+
+应用之后进入Pod访问
+
+访问灭有Selector的Service与有Selector的Service的原理相同。请求将被路由到用户定义的Endpoint，该示例为192.168.10.2
+
+![](image/service/no-selector-endpoints.png)
+
+ExternalName Service是Service的特例，它没有Selector，也没有定义任何端口和Endpoint，它通过返回该外部服务的别名来提供服务。
+
+比如当查询主机nginx-service.service时，集群的DNS服务将返回一个值为my.database.example.com的CHAME记录：
+
+```
+
+```
+
