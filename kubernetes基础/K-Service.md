@@ -140,6 +140,36 @@ Ingress 的结构如下图所示：
 
 一个Service在kubernetes中是一个REST对象。像所有REST对象一样，Service的定义可以基于POST方式，请求APIServer创建新的实例。
 
+Service的Yaml规范
+
+```
+apiVersion: v1
+kind: Service
+matadata:                                #元数据
+  name: string                           #service的名称
+  namespace: string                      #命名空间
+  labels:                                #自定义标签属性列表
+    - name: string
+  annotations:                           #自定义注解属性列表
+    - name: string
+spec:                                    #详细描述
+  selector: []                           #label selector配置，将选择具有label标签的Pod作为管理 范围
+  type: string                           #service的类型，指定service的访问方式，默认为clusterIp
+  clusterIP: string                      #虚拟服务地址
+  sessionAffinity: string                #是否支持session
+  ports:                                 #service需要暴露的端口列表
+  - name: string                         #端口名称
+    protocol: string                     #端口协议，支持TCP和UDP，默认TCP
+    port: int                            #服务监听的端口号
+    targetPort: int                      #需要转发到后端Pod的端口号
+    nodePort: int                        #当type = NodePort时，指定映射到物理机的端口号
+  status:                                #当spce.type=LoadBalancer时，设置外部负载均衡器的地址
+    loadBalancer:                        #外部负载均衡器
+      ingress:                           #外部负载均衡器
+        ip: string                       #外部负载均衡器的Ip地址值
+        hostname: string                 #外部负载均衡器的主机名
+```
+
 现在有一组Pod，他们暴露了80端口，同时具有nginx=nginx标签，
 
 ```
@@ -264,9 +294,66 @@ subsets:
 
 ExternalName Service是Service的特例，它没有Selector，也没有定义任何端口和Endpoint，它通过返回该外部服务的别名来提供服务。
 
-比如当查询主机nginx-service.service时，集群的DNS服务将返回一个值为my.database.example.com的CHAME记录：
+比如当查询主机nginx-service.service时，集群的DNS服务将返回一个值为my.database.example.com的CHAME记录，然后内部Pod便可以访问公网的域名：
 
 ```
+apiVersion: v1
+kind: Service
+metadata:
+  name: externalname
+  namespace: default
+spec:
+  type: ExternalName
+  externalName: www.mytting.cn
+```
 
+如下图所示，139.155.74.152为笔者的公网域名
+
+![](image/service/externalname.png)
+
+## 7 多端口Service
+
+在许多情况下，Service可能需要暴露多个端口，对于这种情况Kubernetes支持Service定义多个端口，但使用多个端口时，必须提供所有端口的名称，例如
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: duoport
+spec:
+  selector:
+    app: nginx
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 80
+  - name: https
+    protocol: TCP
+    port: 443
+    targetPort: 443
+```
+
+## 8 发布服务/服务类型
+
+对于应用程序的某些部分(例如前端)，一般要将服务公开到集群外部供用户访问。但这种情况下都是用Ingress通过域名进行访问。
+
+以NodePort为例，如果将type自动设置为NodePort，则Kuberentes将从--service-node-port-range参数指定的范围(默认为30000-32767)中自动分配端口,也可以手动指定NodePort，并且每个节点将代理该端口到Service
+
+一般格式如下
+
+```
+apiVersion: v1
+kind: Service
+metadata:
+  name: nodeport
+spec:
+  type: NodePort
+  ports:
+  - port: 443
+    targetPort: 443
+    nodePort: 30001
+  selector:
+   app: nginx
 ```
 

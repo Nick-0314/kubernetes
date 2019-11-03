@@ -1,0 +1,18 @@
+# Ingress
+
+ingress为Kubernetes集群中的服务提供了入口，可以提供负载均衡，SSL终止和基于名称的虚拟主机，在生产环境中常用的Ingress有Treafik,Nginx,HAProxy,Istio等。
+
+## 1 基本概念
+
+在Kubernetes1.1版本中添加的Ingress用于从集群外部到集群内部的Service的HTTP和HTTPS路由，流量从Internet到Ingress再到Services最后到Pod上，通常情况下，Ingress部署在所有的Node节点上。
+
+Ingress可以配置提供服务外部访问的URL，负载均衡，终止SSL，并提供基于域名的虚拟主机。但Ingress不会暴露任意端口或协议。
+
+## 2 创建一个Ingress
+
+创建一个简单的Ingress如下：
+
+```
+
+```
+
