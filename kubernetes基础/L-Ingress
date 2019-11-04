@@ -10,6 +10,8 @@ Ingress可以配置提供服务外部访问的URL，负载均衡，终止SSL，�
 
 ## 2 创建一个Ingress
 
+前提是安装了Ingress插件,访问时将需要访问的域名指向Ingress Controller所在的节点IP
+
 创建一个简单的Ingress如下：
 
 ```
