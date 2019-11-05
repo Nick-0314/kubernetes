@@ -352,4 +352,135 @@ subjects:
 
 1 kubectl create role
 
-创建一个Role，命名为pod-reader，允许用户在Pod上执行getl,watch和list
+创建一个Role，命名为pod-reader1，允许用户在Pod上执行getl,watch和list：
+
+```
+kubectl create role pod-reader1 --verb=get --verb=list --verb=watch --resource=pods
+```
+
+输出信息
+
+```
+role.rbac.authorization.k8s.io/pod-reader1 created
+```
+
+创建一个指定了resourceNames的Role，命名为pod-reader2：
+
+```
+kubectl create role pod-reader2 --verb=get --resource=pods --resource-name=readablepod --resource-name=anotherpod
+```
+
+输出信息
+
+```
+role.rbac.authorization.k8s.io/pod-reader2 created
+```
+
+创建一个名为foo，并指定APIGroups的Role：
+
+```
+kubectl create role foo --verb=get,list,watch --resource=replicasets.apps
+```
+
+输出信息
+
+```
+role.rbac.authorization.k8s.io/foo created
+```
+
+针对子资源创建一个名为foo2的Role：
+
+```
+kubectl create role foo2 --verb=get,list,watch --resource=pods,pods/status
+```
+
+输出信息
+
+```
+role.rbac.authorization.k8s.io/foo2 created
+```
+
+针对特定/具体资源创建一个名为my-component-lease-holder的Role：
+
+```
+kubectl create role my-component-lease-holder --verb=get,list,watch,update --resource=lease --resource-name=my-component
+```
+
+输出信息
+
+```
+role.rbac.authorization.k8s.io/my-component-lease-holder created
+```
+
+2 kubectl create clusterrole
+
+创建一个名为pod-reader3的ClusterRole，允许用户在Pod上执行get,list和watch
+
+```
+kubectl create clusterrole pod-reader3 --verb=get,list,watch --resource=pods
+```
+
+创建一个名为pod-reader4的ClusterRole，并指定resourceName:
+
+```
+kubectl create clusterrole pod-reader4 --verb=get --resource=pods --resource-name=reaadablepod --resource-name=anotherpod
+```
+
+使用指定的apiGroup创建一个名为foo3的ClusterRole
+
+```
+kubectl create clusterrole foo3 --verb=get,list,watch --resource=replicasets.apps
+```
+
+使用子资源创建一个名为foo4的ClusterRole：
+
+```
+kubectl create clusterrole foo4 --verb=get,list,watch --resource=pods,pods/status
+```
+
+使用non-ResourceURL创建一个名为foo5的ClusterRole
+
+```
+kubectl create clusterrole foo5 --verb=get --non-resource-url=/logs/*
+```
+
+使用特定标签创建名为monitoring1的聚合ClusterRole
+
+```
+kubectl create clusterrole monitoring1 --aggregation-rule="rbac.example.com/aggregate-to-monitoring=true"
+```
+
+3 kubectl create rolebinding
+
+创建一个名为bob-admin-binding的RoleBinding，将名为admin的ClusterRole绑定到名为acme的命名空间中一个名为bob的user
+
+先创建命名空间
+
+```
+kubectl create namespace acme
+```
+
+```
+kubectl create rolebinding bob-admin-binding --clusterrole=admin --user=bob --namespace=acme
+```
+
+创建一个名为myapp-view-binding的RoleBinding，将名为view的ClusterRole，绑定到acme命名空间中名为myapp的Service Account
+
+```
+kubectl create rolebinding myapp-view-binding --clusterrole=view --serviceaccount=acme:myapp --namespace=acme
+```
+
+4 kubectl create clusterrolebinding
+
+创建一个名为root-cluster-admin-binding的clusterrolebinding，将名为cluster-admin的ClusterRole绑定到名为root的user
+
+```
+kubectl create clusterrolebinding root-cluster-admin-binding --clusterrole=cluster-admin --user=root
+```
+
+创建一个名为myapp-view-binding的clusterrolebinding，将名为view的ClusterRole绑定到acme命名空间中名为myapp的ServiceAccount
+
+```
+kubectl create clusterrolebinding myapp-view-binding --clusterrole=view --serviceaccount=acme:myapp
+```
+
