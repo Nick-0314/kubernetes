@@ -2,6 +2,8 @@
 
 DaemonSet(守护进程集)和守护进程类似，它在符合匹配条件的节点上均部署一个Pod
 
+[aa](https://github.com/mytting/kubernetes/blob/master/kubernetes%E5%9F%BA%E7%A1%80/F-DaemonSet.md#3-%E5%88%9B%E5%BB%BAdaemonset)
+
 ## 1 什么是DaemonSet
 
 DaemonSet确保全部（或者某些）节点上运行一个Pod副本。当有新节点加入集群时，也会为它们新增一个Pod。当节点从集群中移除时，这些Pod也会被回收，删除DaemonSet将会删除它创建的所有Pod
