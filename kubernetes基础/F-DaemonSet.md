@@ -141,9 +141,28 @@ spec:
 
 本节只演示DaemonSet的使用
 
-比如创建一个nginx的DaemonSet
+比如创建一个nginx的DaemonSet（最基础的DaemonSet）
 
-yaml[文件](./yaml/nginx-ds.yaml)
+yaml文件：
+
+```
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: nginx-daemonset
+spec:
+  selector:
+   matchLabels:
+     apps: nginxdaemonset
+  template:
+    metadata:
+      labels:
+        apps: nginxdaemonset
+    spec:
+      containers:
+      - name: nginx-ds
+        image: nginx
+```
 
 创建DaemonSet
 
@@ -154,44 +173,36 @@ kubectl apply -f nginx-ds.yaml
 输出信息
 
 ```
-namespace/ingress-nginx created
-configmap/nginx-configuration created
-configmap/tcp-services created
-configmap/udp-services created
-serviceaccount/nginx-ingress-serviceaccount created
-clusterrole.rbac.authorization.k8s.io/nginx-ingress-clusterrole created
-role.rbac.authorization.k8s.io/nginx-ingress-role created
-rolebinding.rbac.authorization.k8s.io/nginx-ingress-role-nisa-binding created
-clusterrolebinding.rbac.authorization.k8s.io/nginx-ingress-clusterrole-nisa-binding created
-daemonset.apps/nginx-ingress-controller created
+daemonset.apps/nginx-daemonset created
 ```
 
 查看创建的DaemonSet
 
 ```
-kubectl get daemonsets.apps -n ingress-nginx
+kubectl get daemonsets.apps
 ```
 
 输出信息
 
 ```
-NAME                       DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
-nginx-ingress-controller   3         3         3       3            3           <none>          2m23s
+NAME              DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR   AGE
+nginx-daemonset   3         3         3       3            3           <none>          102s
 ```
 
 查看创建的Pod
 
 ```
-kubectl get pods -n ingress-nginx  -o wide
+kubectl get pods -o wide
 ```
 
 输出信息 此时在每个节点创建了一个Pod
 
 ```
-NAME                             READY   STATUS    RESTARTS   AGE   IP              NODE     NOMINATED NODE   READINESS GATES
-nginx-ingress-controller-6qs6x   1/1     Running   0          89s   192.168.10.11   node1    <none>           <none>
-nginx-ingress-controller-s8gwd   1/1     Running   0          89s   192.168.10.10   master   <none>           <none>
-nginx-ingress-controller-xgqbb   1/1     Running   0          89s   192.168.10.12   node2    <none>           <none>
+NAME                             READY   STATUS    RESTARTS   AGE   IP     NAME                                 READY   STATUS    RESTARTS   AGE     IP               NODE     NOMINATED NODE   READINESS GATES
+nginx-daemonset-5kvc5                1/1     Running   0          2m12s   10.244.104.8     node2    <none>           <none>
+nginx-daemonset-bbj45                1/1     Running   0          2m12s   10.244.166.143   node1    <none>           <none>
+nginx-daemonset-vz8b9                1/1     Running   0          2m12s   10.244.219.75    master   <none>           <none>
+
 ```
 
 由于我的kubernetes集群是使用二进制方法安装的，所以主节点没有污点Taint
