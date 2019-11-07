@@ -9,7 +9,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt
 kubectl -n kube-system create secret generic traefik-cert --from-file=tls.key --from-file=tls.crt
 ```
 
-yaml[文件](./yaml文件/traefik)
+yaml[文件](./yaml/traefik)
 
 ```
 kubectl apply -f traefik/
