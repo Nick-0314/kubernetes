@@ -15,6 +15,19 @@ Ingress可以配置提供服务外部访问的URL，负载均衡，终止SSL，�
 创建一个简单的Ingress如下：
 
 ```
-
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: nginx-test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: aa.testnginx.com
+    http:
+      paths:
+      - backend:
+          serviceName: nginx-service
+          servicePort: 80
 ```
 
