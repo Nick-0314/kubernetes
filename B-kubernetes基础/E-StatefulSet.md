@@ -168,9 +168,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "nginx-storage-class"
   nfs:
-    # real share directory
     path: /nfs/web/nginx5
-    # nfs real ip
     server: 192.168.10.10
 ```
 
