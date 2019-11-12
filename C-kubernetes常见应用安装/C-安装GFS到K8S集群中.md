@@ -60,7 +60,7 @@ kubectl label node node2 storagenode=glusterfs
 
 本例部署采用DaemonSet方式，同时保证已经打上标签的节点上哦都运行一个GFS服务，并且均有提供存储的磁盘。
 
-下载向关安装文件：
+下载相关安装文件：
 
 ```
 wget https://github.com/heketi/heketi/releases/download/v9.0.0/heketi-client-v9.0.0.linux.amd64.tar.gz
