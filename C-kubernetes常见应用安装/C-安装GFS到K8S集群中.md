@@ -58,7 +58,7 @@ kubectl label node node2 storagenode=glusterfs
 
 这里采用容器化方式部署GFS集群，同样也可以使用传统模式部署，在生产环境中，GFS集群最好是独立于集群之外进行部署，之后只需创建对应的Service和EndPoints即可。
 
-本例部署采用DaemonSet方式，同时保证已经打上标签的节点上哦都运行一个GFS服务，并且均有提供存储的磁盘。
+本例部署采用DaemonSet方式，同时保证已经打上标签的节点上              都运行一个GFS服务，并且均有提供存储的磁盘。
 
 下载相关安装文件：
 
