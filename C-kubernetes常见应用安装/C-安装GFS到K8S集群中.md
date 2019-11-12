@@ -912,3 +912,226 @@ ls
 {1..10}
 ```
 
+### 8 测试Deployment
+
+测试在Deployment部署方式下是否能够正常使用StorageClass.
+
+创建一个nginx的Deployment如下：
+
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment                # deployment的名称
+  labels:
+    nginx: nginx                            # 标签用于选择节点使用 先确保节点有这个标签
+spec:
+  replicas: 3                                   # 副本数
+  selector:  # 定义deployment如何找到要管理的pod与template的label标签相对应
+    matchLabels:
+      nginx: nginx
+  template:
+    metadata:
+      labels:
+        nginx: nginx  # nginx使用label（标签）标记pod
+    spec:       # 表示pod运行一个名字为nginx-deployment的容器
+      containers:
+        - name: nginx-deployment
+          image: mytting/chang:nginx   # 使用的镜像
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 80
+          volumeMounts:
+          - name: nginx-gfs-html
+            mountPath: "/usr/local/nginx/html"
+          - name: nginx-gfs-conf
+            mountPath: "/usr/local/nginx/conf/vhost"
+      volumes:
+      - name: nginx-gfs-html
+        persistentVolumeClaim:
+          claimName: glusterfs-nginx-html
+      - name: nginx-gfs-conf
+        persistentVolumeClaim:
+          claimName: glusterfs-nginx-conf
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: glusterfs-nginx-html
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  storageClassName: "gluster-heketi"
+  resources:
+    requests:
+      storage: 500Mi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: glusterfs-nginx-conf
+spec:
+  accessModes: [ "ReadWriteMany" ]
+  storageClassName: "gluster-heketi"
+  resources:
+    requests:
+      storage: 10Mi
+```
+
+上述例子为了演示使用了两个PVC，实际环境中可以使用subPath来区分conf和html。当然也可以直接指定卷，此时不单独创建PVC。
+
+直接创建的方式如下
+
+```
+spec:
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-storage
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: "gluster-heketi"
+      resources:
+        requests:
+          storage: 4M
+```
+
+查看资源
+
+```
+kubectl get pv,pvc,deployment
+```
+
+输出信息
+
+```
+NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                          STORAGECLASS     REASON   AGE
+persistentvolume/pvc-02dc73e3-359f-4489-a087-1723397b6f2b   1Gi        RWO            Delete           Bound    default/pvc-gluster-heketi     gluster-heketi            19h
+persistentvolume/pvc-577432d9-e1d7-45f9-99c4-1654546f70fb   1Gi        RWX            Delete           Bound    default/glusterfs-nginx-conf   gluster-heketi            3s
+
+NAME                                         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+persistentvolumeclaim/glusterfs-nginx-conf   Bound     pvc-577432d9-e1d7-45f9-99c4-1654546f70fb   1Gi        RWX            gluster-heketi   13s
+persistentvolumeclaim/glusterfs-nginx-html   Pending                                                                        gluster-heketi   13s
+persistentvolumeclaim/pvc-gluster-heketi     Bound     pvc-02dc73e3-359f-4489-a087-1723397b6f2b   1Gi        RWO            gluster-heketi   19h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/heketi             1/1     1            1           20h
+deployment.apps/nginx-deployment   0/3     3            0           13s
+[root@master ~]# vim nginx.yaml 
+[root@master ~]# kubectl get pv,pvc,deployment
+NAME                                                        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                          STORAGECLASS     REASON   AGE
+persistentvolume/pvc-02dc73e3-359f-4489-a087-1723397b6f2b   1Gi        RWO            Delete           Bound    default/pvc-gluster-heketi     gluster-heketi            19h
+persistentvolume/pvc-2f8df599-b934-427c-80cc-69877788d470   1Gi        RWX            Delete           Bound    default/glusterfs-nginx-html   gluster-heketi            46s
+persistentvolume/pvc-577432d9-e1d7-45f9-99c4-1654546f70fb   1Gi        RWX            Delete           Bound    default/glusterfs-nginx-conf   gluster-heketi            50s
+
+NAME                                         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+persistentvolumeclaim/glusterfs-nginx-conf   Bound    pvc-577432d9-e1d7-45f9-99c4-1654546f70fb   1Gi        RWX            gluster-heketi   60s
+persistentvolumeclaim/glusterfs-nginx-html   Bound    pvc-2f8df599-b934-427c-80cc-69877788d470   1Gi        RWX            gluster-heketi   60s
+persistentvolumeclaim/pvc-gluster-heketi     Bound    pvc-02dc73e3-359f-4489-a087-1723397b6f2b   1Gi        RWO            gluster-heketi   19h
+
+NAME                               READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/heketi             1/1     1            1           20h
+deployment.apps/nginx-deployment   3/3     3            3           60s
+```
+
+查看挂载情况
+
+```
+kubectl exec -it nginx-deployment-6657d9c6cd-96pr7 -- df -Th
+```
+
+输出信息
+
+```
+Filesystem                                         Type            Size  Used Avail Use% Mounted on
+overlay                                            overlay          37G  8.2G   29G  22% /
+tmpfs                                              tmpfs            64M     0   64M   0% /dev
+tmpfs                                              tmpfs           2.0G     0  2.0G   0% /sys/fs/cgroup
+/dev/mapper/centos-root                            xfs              37G  8.2G   29G  22% /etc/hosts
+shm                                                tmpfs            64M     0   64M   0% /dev/shm
+192.168.10.12:vol_4c8feb3de42d24249b4341ccf1378d46 fuse.glusterfs 1014M   43M  972M   5% /usr/local/nginx/html
+192.168.10.12:vol_37ce37668784038e7f0e41d07681898f fuse.glusterfs 1014M   43M  972M   5% /usr/local/nginx/conf/vhost
+tmpfs                                              tmpfs           2.0G   12K  2.0G   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                              tmpfs           2.0G     0  2.0G   0% /proc/acpi
+tmpfs                                              tmpfs           2.0G     0  2.0G   0% /proc/scsi
+tmpfs                                              tmpfs           2.0G     0  2.0G   0% /sys/firmware
+```
+
+宿主机挂载并创建index.html
+
+```
+mkdir /test
+mount -t glusterfs 192.168.10.12:vol_4c8feb3de42d24249b4341ccf1378d46 /test/
+cd /test/
+echo "test" > index.html
+```
+
+Pod内查看文件
+
+```
+kubectl exec -it nginx-deployment-6657d9c6cd-96pr7 -- cat /usr/local/nginx/html/index.html
+```
+
+输出信息
+
+```
+test
+```
+
+扩容Nginx，查看是否能正常挂载目录：
+
+```
+kubectl get deployments.apps
+```
+
+输出信息
+
+```
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+heketi             1/1     1            1           21h
+nginx-deployment   3/3     3            3           55m
+```
+
+```
+kubectl scale deployment nginx-deployment --replicas=5
+```
+
+输出信息
+
+```
+deployment.apps/nginx-deployment scaled
+```
+
+查看Pod
+
+```
+kubectl get pods -o wide
+```
+
+输出信息
+
+```
+NAME                                READY   STATUS    RESTARTS   AGE   IP               NODE     NOMINATED NODE   READINESS GATES
+glusterfs-8ml5g                     1/1     Running   0          22h   192.168.10.12    node2    <none>           <none>
+glusterfs-cwtt5                     1/1     Running   0          22h   192.168.10.11    node1    <none>           <none>
+glusterfs-j9qh2                     1/1     Running   0          22h   192.168.10.10    master   <none>           <none>
+heketi-68795ccd8-8grk7              1/1     Running   0          21h   10.244.104.8     node2    <none>           <none>
+nginx-deployment-6657d9c6cd-5sn69   1/1     Running   0          58m   10.244.219.73    master   <none>           <none>
+nginx-deployment-6657d9c6cd-6wj65   1/1     Running   0          58m   10.244.104.11    node2    <none>           <none>
+nginx-deployment-6657d9c6cd-96pr7   1/1     Running   0          58m   10.244.166.138   node1    <none>           <none>
+nginx-deployment-6657d9c6cd-cp4dx   1/1     Running   0          82s   10.244.104.12    node2    <none>           <none>
+nginx-deployment-6657d9c6cd-m9ldz   1/1     Running   0          82s   10.244.166.139   node1    <none>           <none>
+pod-use-pvc                         1/1     Running   1          20h   10.244.219.71    master   <none>           <none>
+```
+
+访问最新创建的Pod
+
+```
+curl 10.244.166.139
+```
+
+输出信息
+
+```
+test
+```
+
