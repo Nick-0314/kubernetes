@@ -190,3 +190,4 @@ firefox 10.250.0.36:3000 &
 节点
 
 ![image-20191120233828539](image/E-安装Prometheus+Grafana到K8S集群中/image-20191120233828539.png)
+
