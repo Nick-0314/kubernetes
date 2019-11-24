@@ -4,21 +4,20 @@
 
 nginx和php使用nfs挂载网页文件
 
-mysql使用集群外的mysql
-
-镜像版本
+mysql使用nfs将数据文件挂载出来
 
 nginx： 基于CentOS的自定义nginx镜像
 
 php：基于CentOS的自定义php镜像
+
+mysql：基于mysql5.7官方镜像
 
 ## 1 搭建nfs服务
 
 创建目录
 
 ```
-mkdir /nfs/web/nginx -p
-mkdir /nfs/web/php
+mkdir /nfs/web/date -p
 mkdir /nfs/web/db
 ```
 
@@ -37,13 +36,13 @@ systemctl enable nfs
 编辑网页文件
 
 ```
-echo "Hello this is LNMP on kubernetes" > /nfs/web/nginx/index.html
+echo "Hello this is LNMP on kubernetes" > /nfs/web/date/index.html
 ```
 
 ```
-echo "<?php" > /nfs/web/php/index.php
-echo "phpinfo();" >> /nfs/web/php/index.php
-echo "?>" >> /nfs/web/php/index.php
+echo "<?php" > /nfs/web/date/index.php
+echo "phpinfo();" >> /nfs/web/date/index.php
+echo "?>" >> /nfs/web/date/index.php
 ```
 
 ## 2 创建php的deployment和service
@@ -89,7 +88,7 @@ spec:
       - name: php
         nfs:  #设置NFS服务器
           server: 192.168.10.10 #设置NFS服务器地址
-          path: /nfs/web/php #设置NFS服务器路径
+          path: /nfs/web/date #设置NFS服务器路径
           readOnly: true #设置是否只读
 ```
 
@@ -148,7 +147,7 @@ php             ClusterIP   10.250.0.16    <none>        9000/TCP   74s
 编辑YAML文件 创建nginx的Service ConfigMap 和 Deployment
 
 ```
-apiVersion: v1
+piVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-dp-config
@@ -169,7 +168,7 @@ data:
             server_name  localhost;
             location / {
                 root   html;
-                index  index.html index.htm;
+                index  index.php;
             }
             error_page   500 502 503 504  /50x.html;
             location = /50x.html {
@@ -226,7 +225,7 @@ spec:
       - name: www
         nfs:  #设置NFS服务器
           server: 192.168.10.10 #设置NFS服务器地址
-          path: /nfs/web/nginx #设置NFS服务器路径
+          path: /nfs/web/date #设置NFS服务器路径
           readOnly: true #设置是否只读
       - name: nginx-config
         configMap:
@@ -298,6 +297,7 @@ firefox 10.250.0.183/index.php
 
 ```
 kubectl create secret generic mysql-pass --from-literal=password=123.com
+kubectl create secret generic mysql-database --from-literal=datebase=wd
 ```
 
 输出信息
@@ -306,9 +306,24 @@ kubectl create secret generic mysql-pass --from-literal=password=123.com
 secret/mysql-pass created
 ```
 
-### 2 创建PV
+## 2 创建Deployment
+
+yaml文件
 
 ```
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    mysql: mysql
+spec:
+  ports:
+    - port: 3306
+  selector:
+    mysql: mysql
+    tier: mysql
+---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -321,25 +336,7 @@ spec:
   nfs:
     path: /nfs/web/db
     server: 192.168.10.10
-```
-
-应用yaml文件
-
-```
-kubectl create -f pv-db.yaml
-```
-
-输出信息
-
-```
-persistentvolume/mysql-pv created
-```
-
-## 3 创建PVC
-
-yaml文件
-
-```
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -352,25 +349,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-```
-
-应用yaml文件
-
-```
-kubectl apply -f mysql-pvc.yaml
-```
-
-输出信息
-
-```
-persistentvolumeclaim/mysql-claim created
-```
-
-## 4 创建Deployment
-
-yaml文件
-
-```
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -400,6 +379,11 @@ spec:
             secretKeyRef:
               name: mysql-pass
               key: password
+        - name: MYSQL_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: mysql-database
+              key: datebase
         ports:
         - containerPort: 3306
           name: dz-mysql
@@ -421,41 +405,15 @@ kubectl create -f dp-mysql.yaml
 输出信息
 
 ```
+service/mysql created
+persistentvolume/mysql-pv created
+persistentvolumeclaim/mysql-claim created
 deployment.apps/mysql created
 ```
 
-## 5 创建Service
 
-yaml文件
 
-```
-apiVersion: v1
-kind: Service
-metadata:
-  name: mysql
-  labels:
-    mysql: mysql
-spec:
-  ports:
-    - port: 3306
-  selector:
-    mysql: mysql
-    tier: mysql
-```
-
-应用YAML文件
-
-```
-kubectl apply -f db-service.yaml
-```
-
-输出信息
-
-```
-service/mysql created
-```
-
-## 6 搭建WordPress
+## 3 搭建WordPress
 
 下载源码
 
@@ -463,9 +421,128 @@ service/mysql created
 wget https://raw.githubusercontent.com/hejianlai/Docker-Kubernetes/master/Kubernetes/Project/k8s_wordporss/wordpress-4.7.4-zh_CN.tar.gz
 ```
 
-解压到nginx和PHP的nfs目录下各一份
+解压到/nfs/web/date目录下
+
+```
+tar -xvf wordpress-4.7.4-zh_CN.tar.gz -C /nfs/web/date/
+```
+
+添加一个文件
+
+```
+vim /nfs/web/date/wordpress/wp-config.php
+```
+
+添加
+
+```
+<?php
+/**
+ * WordPress基础配置文件。
+ *
+ * 这个文件被安装程序用于自动生成wp-config.php配置文件，
+ * 您可以不使用网站，您需要手动复制这个文件，
+ * 并重命名为“wp-config.php”，然后填入相关信息。
+ *
+ * 本文件包含以下配置选项：
+ *
+ * * MySQL设置
+ * * 密钥
+ * * 数据库表名前缀
+ * * ABSPATH
+ *
+ * @link https://codex.wordpress.org/zh-cn:%E7%BC%96%E8%BE%91_wp-config.php
+ *
+ * @package WordPress
+ */
+
+// ** MySQL 设置 - 具体信息来自您正在使用的主机 ** //
+/** WordPress数据库的名称 */
+define('DB_NAME', 'wd');
+
+/** MySQL数据库用户名 */
+define('DB_USER', 'root');
+
+/** MySQL数据库密码 */
+define('DB_PASSWORD', '123.com');
+
+/** MySQL主机 */
+define('DB_HOST', 'mysql');
+
+/** 创建数据表时默认的文字编码 */
+define('DB_CHARSET', 'utf8mb4');
+
+/** 数据库整理类型。如不确定请勿更改 */
+define('DB_COLLATE', '');
+
+/**#@+
+ * 身份认证密钥与盐。
+ *
+ * 修改为任意独一无二的字串！
+ * 或者直接访问{@link https://api.wordpress.org/secret-key/1.1/salt/
+ * WordPress.org密钥生成服务}
+ * 任何修改都会导致所有cookies失效，所有用户将必须重新登录。
+ *
+ * @since 2.6.0
+ */
+define('AUTH_KEY',         'Zefr&toYwr^9KL16I-n6~BedDs>OL9|f]qfK@S*dhkCs.P$*(#m:&~R y}<3acn%');
+define('SECURE_AUTH_KEY',  '[B,HxQ%[d.Bh=Vhx.h%:HXvle}o!g=pMg|)x$Al+a6=9w3IHaWCAVpY,,3jbjMvo');
+define('LOGGED_IN_KEY',    'VN)Txu]68$:W,VeEe6X~Po##iobP~{8L-65?)O8SPf5i 1-O,d+GA_5E3}Mh[weq');
+define('NONCE_KEY',        '!*#A~pci@*l9EWHfj(@ol^,^/nxsn_}Fv.5/fp>n<H7]wjEpJzXLFq`JS4/KO;VD');
+define('AUTH_SALT',        'f.R0zhjh>^]rFh&gfU|l=4%UdMmN-.r2frJ+}+DmNt47P`zh;]i]nlHjs}6 $d(m');
+define('SECURE_AUTH_SALT', 'zdE$$c`9uhIYCn*+x`8/Hw?DK_9K1pkyOeA(L]pC6qH|zz7Ugme4*pFtDg-Ix4Th');
+define('LOGGED_IN_SALT',   'zlxA/PU&go+>ZiDSDuXuk+W4?(UTJPT=TPP3dJ[ZpcLN0dUrFnd-`$p59Tl!ojzW');
+define('NONCE_SALT',       'NH`/m1M*p#t!$?GVcX=` ogh`rxXa+Q=ZGR?[{,Q(Xlbt.gskb$yyYGBUDTbYoQH');
+
+/**#@-*/
+
+/**
+ * WordPress数据表前缀。
+ *
+ * 如果您有在同一数据库内安装多个WordPress的需求，请为每个WordPress设置
+ * 不同的数据表前缀。前缀名只能为数字、字母加下划线。
+ */
+$table_prefix  = 'wp_';
+
+/**
+ * 开发者专用：WordPress调试模式。
+ *
+ * 将这个值改为true，WordPress将显示所有用于开发的提示。
+ * 强烈建议插件开发者在开发环境中启用WP_DEBUG。
+ *
+ * 要获取其他能用于调试的信息，请访问Codex。
+ *
+ * @link https://codex.wordpress.org/Debugging_in_WordPress
+ */
+define('WP_DEBUG', false);
+
+/**
+ * zh_CN本地化设置：启用ICP备案号显示
+ *
+ * 可在设置→常规中修改。
+ * 如需禁用，请移除或注释掉本行。
+ */
+define('WP_ZH_CN_ICP_NUM', true);
+
+/* 好了！请不要再继续编辑。请保存本文件。使用愉快！ */
+
+/** WordPress目录的绝对路径。 */
+if ( !defined('ABSPATH') )
+	define('ABSPATH', dirname(__FILE__) . '/');
+
+/** 设置WordPress变量和包含文件。 */
+require_once(ABSPATH . 'wp-settings.php');
+```
 
 访问安装
+
+![image-20191124203708704](image/B-部署生产级LNMP/image-20191124203708704.png)
+
+![image-20191124203856355](image/B-部署生产级LNMP/image-20191124203856355.png)
+
+![image-20191124203939965](image/B-部署生产级LNMP/image-20191124203939965.png)
+
+![image-20191124203949344](image/B-部署生产级LNMP/image-20191124203949344.png)
 
 最后结果
 
