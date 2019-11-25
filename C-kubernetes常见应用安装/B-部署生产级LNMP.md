@@ -427,13 +427,17 @@ wget https://raw.githubusercontent.com/hejianlai/Docker-Kubernetes/master/Kubern
 tar -xvf wordpress-4.7.4-zh_CN.tar.gz -C /nfs/web/date/
 ```
 
-添加一个文件
+访问安装
+
+![image-20191124203708704](image/B-部署生产级LNMP/image-20191124203708704.png)
+
+然后会提示添加一个文件
 
 ```
 vim /nfs/web/date/wordpress/wp-config.php
 ```
 
-添加
+添加的文件内容会有提示 这里是一个示例
 
 ```
 <?php
@@ -534,9 +538,7 @@ if ( !defined('ABSPATH') )
 require_once(ABSPATH . 'wp-settings.php');
 ```
 
-访问安装
 
-![image-20191124203708704](image/B-部署生产级LNMP/image-20191124203708704.png)
 
 ![image-20191124203856355](image/B-部署生产级LNMP/image-20191124203856355.png)
 
