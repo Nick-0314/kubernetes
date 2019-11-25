@@ -147,7 +147,7 @@ php             ClusterIP   10.250.0.16    <none>        9000/TCP   74s
 编辑YAML文件 创建nginx的Service ConfigMap 和 Deployment
 
 ```
-piVersion: v1
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-dp-config
