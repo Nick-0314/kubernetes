@@ -162,7 +162,7 @@ Taints:             key=value:NoSchedule
 
 ```
       tolerations:
-      - key: “node.alpha.kubernetes.io/unreachable”
+      - key: "node.alpha.kubernetes.io/unreachable"
         operator: "Exits"
         effect: "NoExecute"
         tolerationSeconds: 6000
@@ -182,6 +182,22 @@ Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
 ```
 
 这种自动添加Toleration的机制保证了在其中一种问题被检测时，Pod默认能够继续停留在当前节点5分钟(如果5分钟内节点恢复，则不重启)，这两个默认Toleration是由DefaultToleartionSeconds admission controller 添加的。
+
+可以自定义时间 例如60s
+
+```
+      tolerations:
+      - key: "node.alpha.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 60
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+```
 
 DaemonSet中的Pod被创建时，针对以下Taint自动添加的NoExecute的Toleration将不会指定TolerationSeconds：
 

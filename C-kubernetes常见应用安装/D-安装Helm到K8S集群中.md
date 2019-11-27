@@ -26,6 +26,6 @@ Helm由以下两个组件组成
 下载最新版二进制文件并压缩，下载地址为https://github.com/helm/helm/releases
 
 ```
-wget https://get.helm.sh/helm-v2.16.0-linux-amd64.tar.gz
+wget https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz
 ```
 
