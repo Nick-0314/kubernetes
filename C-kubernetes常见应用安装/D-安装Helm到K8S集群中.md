@@ -29,3 +29,65 @@ Helm由以下两个组件组成
 wget https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz
 ```
 
+解压软件包
+
+```
+tar -xvf helm-v3.0.0-linux-amd64.tar.gz
+```
+
+移动命令
+
+```
+mv linux-amd64/helm /usr/local/bin/
+```
+
+让helm命令可以table
+
+```
+source <(helm completion bash)
+```
+
+3.0版本不需要初始化
+
+## 使用
+
+例如
+
+安装nginx
+
+先在helm hub上搜索仓库
+
+```
+https://hub.helm.sh/charts
+```
+
+![image-20191127221343884](image/D-安装Helm到K8S集群中/image-20191127221343884.png)
+
+在图中红框内输入nginx（例如）
+
+![image-20191127221431229](image/D-安装Helm到K8S集群中/image-20191127221431229.png)
+
+然后点击一个框框
+
+![image-20191127221500604](image/D-安装Helm到K8S集群中/image-20191127221500604.png)
+
+然后框内有两条命令
+
+输入第一台 （添加仓库）
+
+```
+helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable/
+```
+
+然后输入第二条安装（需要改一下 在install 后面写个名字）
+
+```
+helm install nginx ibm-charts/ibm-nginx-dev --version 1.0.1
+```
+
+这里因为yaml文件版本问题安装失败（1.15可以安装）
+
+```
+Error: unable to build kubernetes objects from release manifest: unable to recognize "": no matches for kind "Deployment" in version "extensions/v1beta1"
+```
+
