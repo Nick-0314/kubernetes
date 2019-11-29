@@ -69,7 +69,7 @@ metadata:
   labels:
     php: php                         # 标签用于选择节点使用 先确保节点有这个标签
 spec:
-  replicas: 5                                   # 副本数
+  replicas: 6                                   # 副本数
   selector:  # 定义deployment如何找到要管理的pod与template的label标签相对应
     matchLabels:
       php: php
@@ -80,7 +80,7 @@ spec:
     spec:       # 表示pod运行一个名字为nginx-deployment的容器
       containers:
         - name: php-deployment
-          image: 192.168.10.66:5000/php   # 使用的镜像
+          image: mytting/chang:php   # 使用的镜像
           volumeMounts:
           - name: php
             mountPath: /usr/local/nginx/html
@@ -203,7 +203,7 @@ metadata:
   labels:
     nginx: nginx                            # 标签用于选择节点使用 先确保节点有这个标签
 spec:
-  replicas: 5                                   # 副本数
+  replicas: 6                                   # 副本数
   selector:  # 定义deployment如何找到要管理的pod与template的label标签相对应
     matchLabels:
       nginx: nginx
