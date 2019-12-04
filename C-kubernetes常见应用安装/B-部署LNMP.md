@@ -49,7 +49,7 @@ echo "?>" >> /nfs/web/date/index.php
 
 编辑yaml文件
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -146,7 +146,7 @@ php             ClusterIP   10.250.0.16    <none>        9000/TCP   74s
 
 编辑YAML文件 创建nginx的Service ConfigMap 和 Deployment
 
-```
+```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -310,7 +310,7 @@ secret/mysql-pass created
 
 yaml文件
 
-```
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
