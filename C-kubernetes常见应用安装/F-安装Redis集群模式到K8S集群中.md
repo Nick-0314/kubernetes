@@ -2,6 +2,8 @@
 
 本节演示安装Redis4.0.8集群模式到Kubernetes集群中，本小节安装采用的是NFS（阿里云可以采用NAS）作为持久化存储，当然也可以使用上节创建的GFS提供的动态存储，只需修改redis-cluster-ss.yaml的storageClassName即可，同时无需再创建redis-cluster-pv.yaml文件。在生产环境中，对Redis集群实现持久化部署并不是必须的，可以采用hostPath模式讲宿主机的本地目录挂载至Redis存储目录，再加上Pod互斥，不让Redis实例部署在同一个宿主机上，之后再利用节点亲和力，尽量将Redis实例部署在原有的宿主机上，此种方式和直接在宿主机上部署Redis并无太大区别，并且实现了Redis的自动容灾功能。当然，在实际使用中，也可以不对Redis进行持久化部署，因为生产环境一般采用Cluster模式部署，同时宕机的可能性较小。
 
+如果所有节点同时宕机，则集群错误，且恢复的可能性很小
+
 ## 1 各文件介绍
 
 1 redis-cluster-configmap.yaml
@@ -322,6 +324,7 @@ echo "/k8s/redis-cluster/6 *(rw,sync,no_subtree_check,no_root_squash)" >> /etc/e
 
 ```shell
 systemctl restart nfs
+systemctl enable nfs
 ```
 
 ## 4 创建集群
@@ -413,6 +416,7 @@ echo "/k8s/redis-cluster/6 *(rw,sync,no_subtree_check,no_root_squash)" >> /etc/e
 
 ```shell
 systemctl restart nfs
+systemctl enable nfs
 ```
 
 配置nfs的持久化卷，请根据实际环境修改
