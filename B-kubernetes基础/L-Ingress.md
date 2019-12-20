@@ -8,7 +8,34 @@ ingress为Kubernetes集群中的服务提供了入口，可以提供负载均衡
 
 Ingress可以配置提供服务外部访问的URL，负载均衡，终止SSL，并提供基于域名的虚拟主机。但Ingress不会暴露任意端口或协议。
 
-## 2 创建一个Ingress
+## 2 安装部署ingress-nginx
+
+```
+git clone https://github.com/kubernetes/ingress-nginx.git
+cd ingress-nginx/deploy/static/
+kubectl apply -f .
+```
+
+注意 默认的ingress-controller为采用Deployment的方式部署的，默认的副本数量为一个，可以修改mandatory.yaml和with-rbac.yaml文件 将Deployment改为DaemonSet并且删除.spec/replicas项
+
+改为DaemonSet后，可以将公网的域名解析到任意一个节点即可访问到内部service，不修改需要将域名解析至ingress-controller所在节点上，解析到其他节点上不可用
+
+然后查看Pod
+
+```
+kubectl get pods -n ingress-nginx -o wide
+```
+
+```
+NAME                             READY   STATUS    RESTARTS   AGE   IP               NODE     NOMINATED NODE   READINESS GATES
+nginx-ingress-controller-54nbt   1/1     Running   0          69s   10.244.166.140   node1    <none>           <none>
+nginx-ingress-controller-6jd86   1/1     Running   0          69s   10.244.219.75    master   <none>           <none>
+nginx-ingress-controller-r9n9w   1/1     Running   0          69s   10.244.104.9     node2    <none>           <none>
+```
+
+
+
+## 3 创建一个Ingress
 
 前提是安装了Ingress插件,访问时将需要访问的域名指向Ingress Controller所在的节点IP
 
@@ -87,7 +114,7 @@ dns只需要将aa.testnginx.com指向node节点即可
 
    没有匹配到任何规则的流量将被发送到默认后端。默认后端通常是IngressController的配置选项，并未在Ingress资源中指定
 
-   ## 3 Ingress类型
+   ## 4 Ingress类型
 
    1 单域名
 

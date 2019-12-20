@@ -181,7 +181,6 @@ stringData:
   password: RABBITMQ_PASS
   url: amqp://RABBITMQ_USER:RABBITMQ_PASS@rmq-cluster-balancer
   username: RABBITMQ_USER
-type: Opaque
 ```
 
 4 service.yaml
@@ -301,7 +300,7 @@ spec:
           value: rabbit@$(POD_NAME).rmq-cluster.$(POD_NAMESPACE).svc.cluster.local
         - name: RABBITMQ_CONFIG_FILE
           value: /var/lib/rabbitmq/rabbitmq.conf
-        image: rabbitmq:3.8.2-management
+        image: rabbitmq:3.7-management
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
