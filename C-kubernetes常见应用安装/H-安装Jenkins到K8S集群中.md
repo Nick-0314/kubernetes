@@ -1,4 +1,4 @@
-# 按照Jenkins到K8S集群中
+# 安装Jenkins到K8S集群中
 
 ## 	1 步骤
 
