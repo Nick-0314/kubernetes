@@ -1,12 +1,26 @@
 # 安装Jenkins到K8S集群中
 
-## 	1 步骤
+## 1 镜像
+
+```
+docker pull jenkins/jenkins:lts-centos
+```
+
+
+
+## 	2 步骤
 
 创建nfs目录及配置nfs服务器
 
 ```
-mkdir /nfs/jenkins
+mkdir /nfs/jenkins -p
 chmod 777 -R /nfs/jenkins/
+```
+
+```
+echo '/nfs/jenkins *(rw,sync)' >> /etc/exports
+systemctl restart nfs 
+systemctl enable nfs
 ```
 
 然后写持久卷的yaml文件，此处使用nfs
@@ -148,12 +162,13 @@ metadata:
   labels:
     app: jenkins2
 spec:
+  type: NodePort
   selector:
     app: jenkins2
   ports:
   - name: web
     port: 8080
-    targetPort: web
+    nodePort: 30080
   - name: agent
     port: 50000
     targetPort: agent
@@ -198,3 +213,9 @@ kubectl logs jenkins2-c785c48f5-gtj4x
 ![image-20191220125813572](image/H-按照Jenkins到K8S集群中/image-20191220125813572.png)
 
 然后一直等着安装吧
+
+
+
+![image-20191221093025889](image/H-安装Jenkins到K8S集群中/image-20191221093025889.png)
+
+![image-20191221093042043](image/H-安装Jenkins到K8S集群中/image-20191221093042043.png)
