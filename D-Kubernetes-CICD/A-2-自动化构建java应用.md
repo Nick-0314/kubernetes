@@ -166,12 +166,34 @@ volumes: [
   }
 ```
 
-
-
-```
-git clone https://github.com/jenkins-docs/simple-java-maven-app
-```
-
 将源码中的src目录和pom文件拷贝到本地仓库内，并上传到gitlab上
 
-![image-20191221161241324](image/A-2-自动化构建java应用/image-20191221161241324.png)
+```
+git　clone https://github.com/mytting/kubernetes.git
+```
+
+将代码中的所有数据传到本地仓库内，并上传至gitlab
+
+然后立即构建
+
+![image-20191221170814619](image/A-2-自动化构建java应用/image-20191221170814619.png)
+
+![image-20191221171336747](image/A-2-自动化构建java应用/image-20191221171336747.png)
+
+
+
+
+
+构建完成之前访问Pod
+
+![image-20191221171422573](image/A-2-自动化构建java应用/image-20191221171422573.png)
+
+构建完成后访问
+
+![image-20191221171501600](image/A-2-自动化构建java应用/image-20191221171501600.png)
+
+harbor镜像仓库
+
+![image-20191221171531496](image/A-2-自动化构建java应用/image-20191221171531496.png)
+
+持续集成完毕

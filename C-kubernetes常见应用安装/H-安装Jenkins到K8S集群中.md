@@ -6,7 +6,7 @@
 docker pull jenkins/jenkins:lts-centos
 ```
 
-
+Yaml文件中的Jenkins的image自行修改
 
 ## 	2 步骤
 
@@ -174,8 +174,6 @@ spec:
     targetPort: agent
 ```
 
-
-
 应用yaml文件
 
 ```
@@ -202,9 +200,7 @@ kubectl delete pod  <Pod Name>
 
 ![image-20191220125728009](image/H-按照Jenkins到K8S集群中/image-20191220125728009.png)
 
-密码
-
-
+密码？
 
 ```
 kubectl logs jenkins2-c785c48f5-gtj4x
@@ -212,10 +208,29 @@ kubectl logs jenkins2-c785c48f5-gtj4x
 
 ![image-20191220125813572](image/H-按照Jenkins到K8S集群中/image-20191220125813572.png)
 
-然后一直等着安装吧
+然后根据提示点击安装插件(左边蓝色的那个)
 
+等待全部安装完成后设置用户名和密码
 
+### 附使用方法：
 
-![image-20191221093025889](image/H-安装Jenkins到K8S集群中/image-20191221093025889.png)
+重启Jenkins：在登陆成功后，在浏览器框内地址后面输入restart然后确定即可
 
-![image-20191221093042043](image/H-安装Jenkins到K8S集群中/image-20191221093042043.png)
+![image-20191221163347912](image/H-安装Jenkins到K8S集群中/image-20191221163347912.png)
+
+更新Jenkins
+
+先根据提示下载Jenkins WAR包
+
+将如下Jenkins工作目录下的war目录下所有内容删除
+
+```
+rm -rf /nfs/jenkins/jenkins2/war/*
+```
+
+然后将war包解压到Jenkins的war目录下
+
+```
+unzip -oq jenkins.war -d /nfs/jenkins/jenkins2/war/
+```
+
