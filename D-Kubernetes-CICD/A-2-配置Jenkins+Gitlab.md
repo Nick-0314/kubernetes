@@ -60,8 +60,8 @@ git push origin master
 docker pull tomcat:8-jre8-alpine
 docker tag tomcat:8-jre8-alpine harbor.devops.com/devops/tomcat:8
 docker push harbor.devops.com/devops/tomcat:8 
-docker pull bitnami/kubectl:1.16-ol-7
-docker tag bitnami/kubectl:1.16-ol-7 harbor.devops.com/devops/kubectl
+docker pull roffe/kubectl
+docker tag roffe/kubectl harbor.devops.com/devops/kubectl
 docker push harbor.devops.com/devops/kubectl
 docker pull  maven:3.6-jdk-8-openj9
 docker tag maven:3.6-jdk-8-openj9 harbor.devops.com/devops/maven
