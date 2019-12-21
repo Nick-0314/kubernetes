@@ -1,0 +1,63 @@
+def label = "worker-${UUID.randomUUID().toString()}"
+
+podTemplate(label: label, containers: [
+  containerTemplate(name: 'jnlp', image:  'jenkins/jnlp-slave:3.35-5-alpine', args: '${computer.jnlpmac} ${computer.name}'),
+  containerTemplate(name: 'docker', image: 'harbor.devops.com/devops/docker:19.03',  command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'maven', image: 'harbor.devops.com/devops/maven:latest', command: 'cat', ttyEnabled: true),
+  containerTemplate(name: 'kubectl', image: 'harbor.devops.com/devops/kubectl', command: 'cat', ttyEnabled: true)
+],
+volumes: [
+  hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
+  hostPathVolume(mountPath: '/root/.kube/config', hostPath: '/root/.kube/config'),
+  hostPathVolume(mountPath: '/etc/hosts', hostPath: '/etc/hosts'),
+]) {
+  node(label) {
+    def myRepo = checkout scm
+    def gitCommit = myRepo.GIT_COMMIT
+    def gitBranch = myRepo.GIT_BRANCH
+    def shortGitCommit = "${gitCommit[0..10]}"
+    def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
+    def JOB_NAME = "test-java"
+    def BUILD_NAME = "dxh"
+    def APP_IMAGE_URL = "harbor.devops.com/devops/"
+    def NS = "default"
+    def PROJECT = "trustee-task"
+    stage('build') {
+      try {
+        container('maven') {
+          sh """
+            mkdir ROOT -p
+            mvn clean install
+            cd ROOT && jar -xvf ../target/*.war
+            """
+        }
+      }
+      catch (exc) {
+        println "Failed to build - ${currentBuild.fullDisplayName}"
+        throw(exc)
+      }
+    }
+    stage('Create Docker images') {
+      container('docker') {
+        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+          credentialsId: 'HARBOR_USER',
+          usernameVariable: 'HARBOR_USER',
+          passwordVariable: 'HARBOR_PASSWORD']]) {
+          sh """
+            docker login -u ${HARBOR_USER} -p ${HARBOR_PASSWORD} ${APP_IMAGE_URL}
+            docker build -t ${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME} .
+            docker push ${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME}
+            """
+          }
+        }
+      }
+    stage('Run kubectl') {
+      container('kubectl') {
+        sh """
+            kubectl set image deployment/${JOB_NAME} ${JOB_NAME}=${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME} -n ${NS} --record
+            kubectl get pod -n ${NS} -l app=${JOB_NAME} -o wide
+           """
+      }
+    }
+    }
+  }
