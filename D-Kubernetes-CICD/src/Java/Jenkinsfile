@@ -4,7 +4,7 @@ podTemplate(label: label, containers: [
   containerTemplate(name: 'jnlp', image:  'jenkins/jnlp-slave:3.35-5-alpine', args: '${computer.jnlpmac} ${computer.name}'),
   containerTemplate(name: 'docker', image: 'harbor.devops.com/devops/docker:19.03',  command: 'cat', ttyEnabled: true),
   containerTemplate(name: 'maven', image: 'harbor.devops.com/devops/maven:latest', command: 'cat', ttyEnabled: true),
-  containerTemplate(name: 'kubectl', image: 'harbor.devops.com/devops/kubectl', command: 'cat', ttyEnabled: true)
+  containerTemplate(name: 'kubectl', image: 'harbor.devops.com/devops/rofekubectl:latest', command: 'cat', ttyEnabled: true)
 ],
 volumes: [
   hostPathVolume(mountPath: '/var/run/docker.sock', hostPath: '/var/run/docker.sock'),
@@ -17,11 +17,11 @@ volumes: [
     def gitBranch = myRepo.GIT_BRANCH
     def shortGitCommit = "${gitCommit[0..10]}"
     def previousGitCommit = sh(script: "git rev-parse ${gitCommit}~", returnStdout: true)
-    def JOB_NAME = "test-java"
-    def BUILD_NAME = "dxh"
-    def APP_IMAGE_URL = "harbor.devops.com/devops/"
+    def JOB_NAME = "${JOB_NAME}"
+    def JOB_NUMBER = "${BUILD_NUMBER}"
+    def HARBOR_ADDRESS = "harbor.devops.com"
+    def APP_IMAGE_URL = "${HARBOR_ADDRESS}/${JOB_NAME}/"
     def NS = "default"
-    def PROJECT = "trustee-task"
     stage('build') {
       try {
         container('maven') {
@@ -45,8 +45,10 @@ volumes: [
           passwordVariable: 'HARBOR_PASSWORD']]) {
           sh """
             docker login -u ${HARBOR_USER} -p ${HARBOR_PASSWORD} ${APP_IMAGE_URL}
-            docker build -t ${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME} .
-            docker push ${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME}
+            docker build -t ${APP_IMAGE_URL}${JOB_NAME}:${JOB_NUMBER} .
+            docker tag ${APP_IMAGE_URL}${JOB_NAME}:${JOB_NUMBER} ${APP_IMAGE_URL}${JOB_NAME}:latest
+            docker push ${APP_IMAGE_URL}${JOB_NAME}:latest
+            docker push ${APP_IMAGE_URL}${JOB_NAME}:${JOB_NUMBER}
             """
           }
         }
@@ -54,7 +56,7 @@ volumes: [
     stage('Run kubectl') {
       container('kubectl') {
         sh """
-            kubectl set image deployment/${JOB_NAME} ${JOB_NAME}=${APP_IMAGE_URL}${JOB_NAME}:${BUILD_NAME} -n ${NS} --record
+            kubectl set image deployment/${JOB_NAME} ${JOB_NAME}=${APP_IMAGE_URL}${JOB_NAME}:${JOB_NUMBER} -n ${NS} --record
             kubectl get pod -n ${NS} -l app=${JOB_NAME} -o wide
            """
       }
