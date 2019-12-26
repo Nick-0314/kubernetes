@@ -2,9 +2,85 @@
 
 本节演示自动构建Java应用，使用的是Tomcat。由于步骤是按照公司内部代码编写的，因此请将Dockerfile和Jenkinsfile放置于目标公司代码的根目录，然后进行测试，或者使用其他项目测试，本示例只是为了演示相关步骤和流水线（pipline）的编写
 
+## 3 gitlab创建项目
+
+![](image/A-3-自动化构建java应用/gitlabcreateproject.gif)
+
+master主机创建本地仓库测试
+
+```
+mkdir gitrepo
+cd gitrepo/
+ssh-keygen -t rsa -C "devops@qq.com"
+git config --global user.name "devops"
+git config --global user.email  "devopsi@qq.com"
+```
+
+然后将密钥复制到gitlab上
+
+![](image/A-3-自动化构建java应用/devopskey.gif)
+
+本地（master）克隆仓库并上传代码测试
+
+```
+cd devops/
+echo "aaaa" > aa
+git add aa
+git commit -m 'test' 
+git push origin master
+```
+
+![](image/A-3-自动化构建java应用/push.gif)
+
+## 4 新建任务(Job)
+
+添加凭据
+
+凭据为gitlab的私钥
+
+![](image/A-3-自动化构建java应用/添加凭据.gif)
+
+添加项目
+
+![](image/A-3-自动化构建java应用/添加任务.gif)
+
+添加Harbor用户名和密码
+
+![](image/A-3-自动化构建java应用/添加hb凭据.gif)
+
+## 5 准备镜像
+
+```
+docker pull tomcat:8-jre8-alpine
+docker tag tomcat:8-jre8-alpine harbor.devops.com/devops/tomcat:8
+docker push harbor.devops.com/devops/tomcat:8 
+docker pull roffe/kubectl
+docker tag roffe/kubectl harbor.devops.com/devops/kubectl
+docker push harbor.devops.com/devops/kubectl
+docker pull  maven:3.6-jdk-8-openj9
+docker tag maven:3.6-jdk-8-openj9 harbor.devops.com/devops/maven
+docker push harbor.devops.com/devops/maven
+docker pull jenkins/jnlp-slave:alpine
+docker tag jenkins/jnlp-slave:alpine harbor.devops.com/devops/jnlp-slave:alpine
+docker push harbor.devops.com/devops/jnlp-slave
+docker pull docker:19.03
+docker tag docker:19.03 harbor.devops.com/devops/docker:19.03
+docker push harbor.devops.com/devops/docker:19.03
+```
+
+然后K8S所有节点下载这几个镜像
+
+```
+docker pull harbor.devops.com/devops/docker:19.03
+docker pull harbor.devops.com/devops/tomcat:8
+docker pull harbor.devops.com/devops/jnlp-slave
+docker pull harbor.devops.com/devops/maven
+docker pull harbor.devops.com/devops/kubectl
+```
 
 
-## 1创建deployment和Secret
+
+## 6创建deployment和Secret
 
 ```
 kubectl create secret docker-registry harbor --docker-server=harbor.devops.com --docker-username=admin --docker-email=tt@qq.com --docker-password=Harbor12345
@@ -87,7 +163,7 @@ spec:
 
 先创建Deployment
 
-##  2定义Dockerfile
+##  7定义Dockerfile
 
 ```
 ROM harbor.devops.com/devops/tomcat:8
