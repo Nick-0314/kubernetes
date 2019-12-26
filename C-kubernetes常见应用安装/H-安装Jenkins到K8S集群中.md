@@ -214,11 +214,11 @@ kubectl logs jenkins2-c785c48f5-gtj4x
 
 ### 附使用方法：
 
-重启Jenkins：在登陆成功后，在浏览器框内地址后面输入restart然后确定即可
+##### 重启Jenkins：在登陆成功后，在浏览器框内地址后面输入restart然后确定即可
 
 ![image-20191221163347912](image/H-安装Jenkins到K8S集群中/image-20191221163347912.png)
 
-更新Jenkins
+##### 更新Jenkins
 
 先根据提示下载Jenkins WAR包
 
@@ -233,4 +233,8 @@ rm -rf /nfs/jenkins/jenkins2/war/*
 ```
 unzip -oq jenkins.war -d /nfs/jenkins/jenkins2/war/
 ```
+
+##### 配置中文插件
+
+安装Localization: Chinese (Simplified)插件即可
 

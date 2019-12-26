@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-nodejs
+  labels:
+    app: test-nodejs
+    env: test
+spec:
+  selector:
+    matchLabels:
+      app: test-nodejs
+  replicas: 4
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  minReadySeconds: 5
+  template:
+    metadata:
+      labels:
+        app: test-nodejs
+    spec:
+      containers:
+        - name: test-nodejs
+          image: harbor.devops.com/devops/nginx:tt
+          imagePullPolicy: IfNotPresent
+
+          # volumeMounts:
+          #  - name: openldap-data
+          #    mountPath: /var/lib/ldap
+          #    subPath: data
+          #  - name: openldap-data
+          #    mountPath: /etc/ldap/slapd.d
+          #    subPath: config
+          #  - name: openldap-data
+          #    mountPath: /container/service/slapd/assets/certs
+          #    subPath: certs
+          #  - name: secret-volume
+          #    mountPath: /container/environment/01-custom
+          #  - name: container-run
+          #    mountPath: /container/run
+          ports:
+            - containerPort: 80
+              name: web
+            # - name: ssl-ldap-port
+            #  containerPort: 636
+          livenessProbe:
+            tcpSocket:
+              port: web
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 10
+          readinessProbe:
+            tcpSocket:
+              port: web
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 10
+      imagePullSecrets:
+        - name: harbor
+      #volumes:
+      #  - name: openldap-data
+      #    persistentVolumeClaim:
+      #      claimName: openldap-data
+      #  - name: "secret-volume"
+      #    secret:
+      #      secretName: "ldap-secret"
+      #  - name: container-run
+      #    emptyDir: {}
