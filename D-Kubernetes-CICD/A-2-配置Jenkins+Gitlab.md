@@ -42,3 +42,53 @@
 
 然后保存
 
+### 注：
+
+如果采用的独立部署的Jenkins
+
+需要在Kubernetes集群中创建无头service，以及创建对应的endpoint以使kubernetes集群内部的Jnlp可以访问到Jenkins master
+
+示例
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: jenkins-host
+spec:
+  ports:
+  - protocol: TCP
+    port: 8080
+    targetPort: 8080
+    name: jenkins
+  - name: slave
+    protocol: TCP
+    port: 50000
+    targetPort: 50000
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: jenkins-host
+subsets:
+  - addresses:
+    - ip: 192.168.10.2
+    ports:
+    - port: 8080
+      name: jenkins
+    - port: 50000
+      name: slave
+```
+
+上述kubernetes云处的Jenkins地址一栏的配置为此service的http://<serviceIP>:8080
+
+
+
+### 然后Jenkins master需要配置安全代理端口50000(Jnlp镜像的默认配置为50000)
+
+![image-20191227154338622](image/A-2-配置Jenkins+Gitlab/image-20191227154338622.png)
+
+![image-20191227154351593](image/A-2-配置Jenkins+Gitlab/image-20191227154351593.png)
+
+![image-20191227154409273](image/A-2-配置Jenkins+Gitlab/image-20191227154409273.png)
+
