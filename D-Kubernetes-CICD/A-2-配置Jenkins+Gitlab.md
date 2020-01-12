@@ -6,8 +6,6 @@
 
 ![image-20191219092256537](image/A-2-配置Jenkins+Gitlab/image-20191219092256537.png)
 
-![image-20191219110715536](image/A-2-配置Jenkins+Gitlab/image-20191219110715536.png)
-
 ## 2 Jenkins kubernetes配置
 
 系统管理
