@@ -54,8 +54,8 @@ git push origin master
 docker pull tomcat:8-jre8-alpine
 docker tag tomcat:8-jre8-alpine harbor.devops.com/devops/tomcat:8
 docker push harbor.devops.com/devops/tomcat:8 
-docker pull roffe/kubectl
-docker tag roffe/kubectl harbor.devops.com/devops/kubectl
+docker pull bitnami/kubectl:$(kubectl version  | awk -F, '{print $3}' | awk -F: '{print $2}' | awk -F\" '{print $2}' | tail -1 | awk -F v '{print $2}')
+docker tag bitnami/kubectl:$(kubectl version  | awk -F, '{print $3}' | awk -F: '{print $2}' | awk -F\" '{print $2}' | tail -1 | awk -F v '{print $2}') harbor.devops.com/devops/kubectl
 docker push harbor.devops.com/devops/kubectl
 docker pull  maven:3.6-jdk-8-openj9
 docker tag maven:3.6-jdk-8-openj9 harbor.devops.com/devops/maven
@@ -68,7 +68,7 @@ docker tag docker:19.03 harbor.devops.com/devops/docker:19.03
 docker push harbor.devops.com/devops/docker:19.03
 ```
 
-然后K8S所有节点下载这几个镜像
+### 然后K8S所有节点下载这几个镜像
 
 ```
 docker pull harbor.devops.com/devops/docker:19.03
