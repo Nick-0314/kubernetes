@@ -49,9 +49,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/1
-    # nfs real ip
     server: 192.168.10.10
 
 ---
@@ -69,9 +67,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/2
-    # nfs real ip
     server: 192.168.10.10
 
 ---
@@ -89,9 +85,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/3
-    # nfs real ip
     server: 192.168.10.10
 
 ---
@@ -109,9 +103,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/4
-    # nfs real ip
     server: 192.168.10.10
 
 ---
@@ -129,9 +121,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/5
-    # nfs real ip
     server: 192.168.10.10
 
 ---
@@ -149,9 +139,7 @@ spec:
   persistentVolumeReclaimPolicy: Recycle
   storageClassName: "redis-cluster-storage-class"
   nfs:
-    # real share directory
     path: /k8s/redis-cluster/6
-    # nfs real ip
     server: 192.168.10.10
 ```
 

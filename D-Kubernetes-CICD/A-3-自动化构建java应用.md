@@ -54,15 +54,12 @@ git push origin master
 docker pull tomcat:8-jre8-alpine
 docker tag tomcat:8-jre8-alpine harbor.devops.com/devops/tomcat:8
 docker push harbor.devops.com/devops/tomcat:8 
-docker pull bitnami/kubectl:$(kubectl version  | awk -F, '{print $3}' | awk -F: '{print $2}' | awk -F\" '{print $2}' | tail -1 | awk -F v '{print $2}')
-docker tag bitnami/kubectl:$(kubectl version  | awk -F, '{print $3}' | awk -F: '{print $2}' | awk -F\" '{print $2}' | tail -1 | awk -F v '{print $2}') harbor.devops.com/devops/kubectl
+docker pull mytting/chang:kubectl-1.17.3
+docker tag mytting/chang:kubectl-1.17.3 harbor.devops.com/devops/kubectl
 docker push harbor.devops.com/devops/kubectl
 docker pull  maven:3.6-jdk-8-openj9
 docker tag maven:3.6-jdk-8-openj9 harbor.devops.com/devops/maven
 docker push harbor.devops.com/devops/maven
-docker pull jenkins/jnlp-slave:alpine
-docker tag jenkins/jnlp-slave:alpine harbor.devops.com/devops/jnlp-slave:alpine
-docker push harbor.devops.com/devops/jnlp-slave
 docker pull docker:19.03
 docker tag docker:19.03 harbor.devops.com/devops/docker:19.03
 docker push harbor.devops.com/devops/docker:19.03
